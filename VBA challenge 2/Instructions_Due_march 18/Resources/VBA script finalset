@@ -1,0 +1,198 @@
+Assignment Code VBA final
+
+Sub Stock_1()
+
+'Define the variables
+    Dim Ticker As String
+    Dim openPrice As Double
+    Dim closePrice As Double
+    Dim yearlyChange As Double
+    Dim percentChange As Double
+    Dim TotalVolume As Double
+    Dim lastRow As Long
+    Dim i As Long
+    Dim j As Long 'all stored info
+    Dim ws As Worksheet 'Bonus
+    
+
+' Bonus: Loop through all worksheets in the workbook
+For Each ws In ThisWorkbook.Worksheets
+
+' Add headers to output
+    ws.Range("I1").Value = "Ticker"
+    ws.Range("J1").Value = "Yearly Change"
+    ws.Range("K1").Value = "Percent Change"
+    ws.Range("L1").Value = "Total Volume"
+    
+' find last row
+lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+       
+'set variable
+        j = 1
+    
+        
+        ' Loop through all rows in the worksheet
+        For i = 2 To lastRow
+        
+            ' Check if the ticker symbol is the same as the previous row
+            If ws.Cells(i, 1).Value <> ws.Cells(i - 1, 1).Value Then
+                
+                ' If the ticker symbol is new, find and store the new ticker
+                Ticker = ws.Cells(i, 1).Value
+                
+                ' Find and store the open price
+                openPrice = ws.Cells(i, 3).Value
+                
+                'reset total volume counter
+                TotalVolume = 0
+                
+            End If
+            
+            ' For current ticker symbol, add the volume for the current row to the total volume
+            TotalVolume = TotalVolume + ws.Cells(i, 7).Value
+            
+            ' Checking if the current row is the last row for the current ticker
+            If ws.Cells(i, 1).Value <> ws.Cells(i + 1, 1).Value Or i = lastRow Then
+                
+                ' If the current row is the last row of the current ticker symbol, then find the close price and calculate the yearly and percent change *open price was found earlier
+                closePrice = ws.Cells(i, 6).Value
+                yearlyChange = closePrice - openPrice
+               'to calculate for percent change, need a new if statement to make sure open price is not = 0
+                If openingPrice <> 0 Then
+                percentChange = yearlyChange / openingPrice
+            Else
+                percentChange = 0
+            End If
+
+                
+                ' Print all results for the current ticker symbol in the columns with the corresponding headers
+                ws.Range("I" & j + 1).Value = Ticker
+                ws.Range("J" & j + 1).Value = yearlyChange
+                ws.Range("K" & j + 1).Value = percentChange
+                ws.Range("K" & j + 1).NumberFormat = "0.00%" 'make  %
+                ws.Range("L" & j + 1).Value = TotalVolume
+
+                
+                ' Apply conditional formatting to highlight positive and negative changes
+                    If yearlyChange > 0 Then
+                        ws.Range("J" & j + 1).Interior.ColorIndex = 4 'green
+                    ElseIf yearlyChange < 0 Then
+                        ws.Range("J" & j + 1).Interior.ColorIndex = 3 'red
+                    Else
+                        ws.Range("J" & j + 1).Interior.ColorIndex = 2 'white
+                    End If
+                
+                ' Move to the next row in the output table
+                j = j + 1
+                
+                ' Reset the variables for the next ticker symbol
+                openPrice = 0
+                closePrice = 0
+                yearlyChange = 0
+                percentChange = 0
+                TotalVolume = 0
+                
+           End If
+        
+    'Record the new ticker name
+                Ticker = ws.Cells(i, 1).Value
+                
+                'Record the opening price for the new ticker
+                openingPrice = ws.Cells(i, 3).Value
+                
+
+            'Add the daily volume to the total volume for the current ticker
+            TotalVolume = TotalVolume + ws.Cells(i, 7).Value
+            
+            'Record the closing price for the current ticker
+            closingPrice = ws.Cells(i, 6).Value
+            
+            'Check if ticker is in last row
+            If i = lastRow Then
+                
+                'Calculate yearly change and percent change
+                yearlyChange = closingPrice - openingPrice
+                percentChange = yearlyChange / openingPrice
+                
+                'Write summary data to the summary table
+                ws.Range("I" & j + 1).Value = Ticker
+                            ws.Range("J" & j + 1).Value = yearlyChange
+            
+            'Apply conditional formatting to the yearly change cell
+            If yearlyChange > 0 Then
+                ws.Range("J" & j).Interior.ColorIndex = 4 'green
+            ElseIf yearlyChange < 0 Then
+                ws.Range("J" & j + 1).Interior.ColorIndex = 3 'red
+            Else
+                ws.Range("J" & j + 1).Interior.ColorIndex = 2 'white
+            End If
+            
+            ws.Range("K" & j + 1).Value = percentChange
+            ws.Range("K" & j + 1).NumberFormat = "0.00%"
+            ws.Range("L" & j + 1).Value = TotalVolume
+            
+        End If
+        
+    Next i
+    
+Next ws
+End Sub
+
+
+
+
+Sub Bonus_IncDec_2()
+
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim IncPercentChange As Double
+    Dim DecPercentChange As Double
+    Dim IncPercentChangeTicker As String
+    Dim DecPercentChangeTicker As String
+    Dim TotalVolume As Double
+    Dim TotalVolumeTicker As String
+    
+    
+    ' set the worksheet variable to the sheet containing the data
+    For Each ws In ThisWorkbook.Worksheets
+    ' get the last row of data in column K
+    lastRow = ws.Cells(ws.Rows.Count, "K").End(xlUp).Row
+    
+    ' loop through the rows of data and find the maximum percent change and corresponding ticker symbol
+    For i = 2 To lastRow
+        ' find maximum percent change and corresponding ticker symbol
+        If ws.Cells(i, "K").Value > IncPercentChange Then
+            IncPercentChange = ws.Cells(i, "K").Value
+            IncPercentChangeTicker = ws.Cells(i, "I").Value
+        End If
+        ' find minimum percent change and corresponding ticker symbol
+        If ws.Cells(i, "K").Value < DecPercentChange Then
+            DecPercentChange = ws.Cells(i, "K").Value
+            DecPercentChangeTicker = ws.Cells(i, "I").Value
+        End If
+        ' find maximum total volume and corresponding ticker symbol
+        If ws.Cells(i, "L").Value > TotalVolume Then
+            TotalVolume = ws.Cells(i, "L").Value
+            TotalVolumeTicker = ws.Cells(i, "I").Value
+        End If
+    Next i
+    
+    ' output the results in cells P1, P2, Q1, and Q2
+    ws.Range("P1").Value = "Ticker"
+    ws.Range("P2").Value = IncPercentChangeTicker
+    ws.Range("P3").Value = DecPercentChangeTicker
+    ws.Range("P4").Value = TotalVolumeTicker
+    ws.Range("Q1").Value = "Value"
+    ws.Range("Q2").Value = IncPercentChange
+    ws.Range("Q3").Value = DecPercentChange
+    ws.Range("Q4").Value = TotalVolume
+    ws.Range("O2").Value = "Greatest % Increase"
+    ws.Range("O3").Value = "Greatest % Decrease"
+    ws.Range("O4").Value = "Greatest Total Volume"
+    
+    Next ws
+End Sub
+
+
+
+
